@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/AndreD23/goexpert-desafio-client-server-api/quotation"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 	"io"
 	"net/http"
 	"time"
@@ -70,5 +72,36 @@ func BuscaCotacao() (*quotation.QuotationResponse, error) {
 		return nil, err
 	}
 
+	// Salva cotacao no banco de dados
+	SalvarCotacao(&quotationResponse)
+
 	return &quotationResponse, nil
+}
+
+func SalvarCotacao(cotacao *quotation.QuotationResponse) {
+	// Salva cotacao no banco de dados SQLite
+	dsn := "quotation.db"
+	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+	if err != nil {
+		panic(err)
+	}
+
+	// Verifica se a tabela existe
+	// Caso não exista, cria a tabela
+	if !db.Migrator().HasTable(&quotation.Quotation{}) {
+		// Caso não exista, cria a tabela
+		err := db.AutoMigrate(&quotation.Quotation{})
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// Converte QuotationResponse para QuotationDB
+	quotationDB := quotation.ConvertToQuotationDB(cotacao)
+
+	// Salva cotacao no banco de dados
+	err = db.Create(quotationDB).Error
+	if err != nil {
+		panic(err)
+	}
 }

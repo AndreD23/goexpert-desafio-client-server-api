@@ -17,3 +17,19 @@ type Quotation struct {
 type QuotationResponse struct {
 	USD_BRL Quotation `json:"USDBRL"`
 }
+
+func ConvertToQuotationDB(qr *QuotationResponse) *Quotation {
+	return &Quotation{
+		Code:       qr.USD_BRL.Code,
+		Codein:     qr.USD_BRL.Codein,
+		Name:       qr.USD_BRL.Name,
+		High:       qr.USD_BRL.High,
+		Low:        qr.USD_BRL.Low,
+		VarBid:     qr.USD_BRL.VarBid,
+		PctChange:  qr.USD_BRL.PctChange,
+		Bid:        qr.USD_BRL.Bid,
+		Ask:        qr.USD_BRL.Ask,
+		Timestamp:  qr.USD_BRL.Timestamp,
+		CreateDate: qr.USD_BRL.CreateDate,
+	}
+}
