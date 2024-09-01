@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/AndreD23/goexpert-desafio-client-server-api/quotation"
 	"io"
 	"net/http"
+	"time"
 )
 
 func main() {
@@ -40,8 +42,18 @@ func BuscaCotacaoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func BuscaCotacao() (*quotation.QuotationResponse, error) {
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, 200*time.Millisecond)
+	defer cancel()
+
 	url := "https://economia.awesomeapi.com.br/json/last/USD-BRL"
-	resp, err := http.Get(url)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
