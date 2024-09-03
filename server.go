@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/AndreD23/goexpert-desafio-client-server-api/quotation"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"io"
+	"log"
 	"net/http"
 	"time"
 )
@@ -57,6 +59,9 @@ func BuscaCotacao() (*quotation.QuotationResponse, error) {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			log.Printf("Erro ao buscar cotação: timeout do contexto excedido")
+		}
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -106,6 +111,9 @@ func SalvarCotacao(cotacao *quotation.QuotationResponse) {
 	// Salva cotacao no banco de dados com contexto
 	err = db.WithContext(ctx).Create(quotationDB).Error
 	if err != nil {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			log.Printf("Erro ao salvar cotação: timeout do contexto excedido")
+		}
 		panic(err)
 	}
 }
