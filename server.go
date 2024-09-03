@@ -79,8 +79,12 @@ func BuscaCotacao() (*quotation.QuotationResponse, error) {
 }
 
 func SalvarCotacao(cotacao *quotation.QuotationResponse) {
+	// Cria um contexto com timeout de 10ms
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+
 	// Salva cotacao no banco de dados SQLite
-	dsn := "quotation.db"
+	dsn := "quotations.db"
 	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
@@ -99,8 +103,8 @@ func SalvarCotacao(cotacao *quotation.QuotationResponse) {
 	// Converte QuotationResponse para QuotationDB
 	quotationDB := quotation.ConvertToQuotationDB(cotacao)
 
-	// Salva cotacao no banco de dados
-	err = db.Create(quotationDB).Error
+	// Salva cotacao no banco de dados com contexto
+	err = db.WithContext(ctx).Create(quotationDB).Error
 	if err != nil {
 		panic(err)
 	}
